@@ -1,21 +1,29 @@
 <template>
-  <div :style="`height: ${height}px`">
-    <slot></slot>
+  <div class="inventory-draggable" :style="`height: ${height}px`">
+    <div class="inventory-draggable-content" :style="`grid-template-columns: repeat(${cols}, 1fr)`">
+      <slot></slot>
+    </div>
   </div>
 </template>
 
 <script>
 export default {
   props: {
-    group: String,
-    layout: Array,
-    height: Number
-  },
-
-  components: {},
-
-  mounted() {
-    console.log(this);
+    groupName: {
+      type: String,
+      required: true
+    },
+    lists: {
+      type: Array
+    },
+    cols: {
+      type: Number,
+      default: 1
+    },
+    height: {
+      type: Number,
+      default: 0
+    }
   }
 };
 </script>
@@ -25,6 +33,14 @@ export default {
   &-draggable {
     width: 100%;
     overflow-y: auto;
+    padding-left: 10px;
+    padding-right: 10px;
+
+    &-content {
+      display: grid;
+      grid-gap: 1.2px;
+      grid-template-columns: repeat(5, 1fr);
+    }
   }
 }
 </style>

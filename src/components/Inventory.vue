@@ -36,7 +36,6 @@ export default {};
       position: absolute;
       top: 50%;
       left: -15px;
-      -webkit-transform: translateY(-50%);
       transform: translateY(-50%);
     }
   }
