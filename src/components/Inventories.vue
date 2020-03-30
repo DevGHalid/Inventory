@@ -11,7 +11,7 @@
               :cols="environment.cols"
               :height="environmentHeight"
             >
-              <InventoryDraggableItem
+              <InventoryDraggableFrame
                 :height="environment.frame.height"
                 v-for="(item, index) in environment.items"
                 :index="index"
@@ -19,7 +19,7 @@
                 :draggable="!!item"
                 @dragstart="dragStart"
                 @drop="drop"
-              >{{ item && 'item ' + item.id }}</InventoryDraggableItem>
+              >{{ item && 'item ' + item.id }}</InventoryDraggableFrame>
             </InventoryDraggable>
           </template>
         </Inventory>
@@ -31,17 +31,13 @@
             <InventoryDraggable
               :groupName="armsWeapon.name"
               :lists="armsWeapon.items"
-              :cols="environment.cols"
-              :height="weaponHeight"
+              :cols="armsWeapon.cols"
+              :height="armsWeaponHeight"
             >
-              <InventoryDraggableItem
-                v-for="(item, index) in armsWeapon.items"
-                :index="index"
-                :key="index"
-                :draggable="!!item"
-                @dragstart="dragStart"
-                @drop="drop"
-              ></InventoryDraggableItem>
+              <InventoryDraggableArmsWeapon :index="0" @dragstart="dragStart" @drop="drop">
+                <img src="../assets/weapon.png" v-if="armsWeapon.items[0]" />
+                <span v-else>Пусто</span>
+              </InventoryDraggableArmsWeapon>
             </InventoryDraggable>
           </template>
         </Inventory>
@@ -50,19 +46,23 @@
     <div class="inventory">
       <div class="inventory-up">
         <Person :height="personHeight">
-          <template #body="{ props }">
-            <div
-              class="person-circle"
-              v-for="personItem in props.personItems.items"
-              :draggable="personItem.item"
-              :class="personItem.slug"
-              :key="personItem.slug"
-              @dragstart="dragStart"
+          <template #body>
+            <PersonDraggable
+              v-for="(item, index) in person.items"
+              :key="index"
+              :lists="item.items"
+              :groupName="person.name"
+              :className="`person-draggable-item ${item.name}`"
             >
-              <div class="person-inner-circle">
-                <img :src="require(`@/assets/${personItem.img}`)" />
-              </div>
-            </div>
+              <PersonItem
+                :draggable="!!item.items[0]"
+                :index="0"
+                @dragstart="dragStart"
+                @drop="drop"
+              >
+                <img :src="require(`@/assets/${item.img}`)" />
+              </PersonItem>
+            </PersonDraggable>
           </template>
         </Person>
       </div>
@@ -76,7 +76,7 @@
               :cols="fastAccess.cols"
               :height="fastAccessHeight"
             >
-              <InventoryDraggableItem
+              <InventoryDraggableFrame
                 :height="fastAccess.frame.height"
                 v-for="(item, index) in fastAccess.items"
                 :index="index"
@@ -84,7 +84,7 @@
                 :draggable="false"
                 @dragstart="dragStart"
                 @drop="dropFastAccess"
-              >{{ item && 'item ' + item.id }}</InventoryDraggableItem>
+              >{{ item && 'item ' + item.id }}</InventoryDraggableFrame>
             </InventoryDraggable>
           </template>
         </Inventory>
@@ -102,15 +102,15 @@
               :height="inventaryHeight"
             >
               <template #default>
-                <InventoryDraggableItem
+                <InventoryDraggableFrame
                   :height="inventory.frame.height"
                   v-for="(item, index) in inventory.items"
                   :index="index"
                   :key="index"
                   :draggable="!!item"
                   @dragstart="dragStart"
-                  @drop="dropInventary"
-                >{{ item && 'item ' + item.id }}</InventoryDraggableItem>
+                  @drop="drop"
+                >{{ item && 'item ' + item.id }}</InventoryDraggableFrame>
               </template>
             </InventoryDraggable>
           </template>
@@ -126,15 +126,15 @@
               :cols="wallet.cols"
               :height="walletHeight"
             >
-              <InventoryDraggableItem
+              <InventoryDraggableFrame
                 :height="wallet.frame.height"
                 v-for="(item, index) in wallet.items"
                 :index="index"
                 :key="index"
                 :draggable="!!item"
                 @dragstart="dragStart"
-                @drop="dropWallet"
-              >{{ item && 'item ' + item.id }}</InventoryDraggableItem>
+                @drop="drop"
+              >{{ item && 'item ' + item.id }}</InventoryDraggableFrame>
             </InventoryDraggable>
           </template>
         </Inventory>
@@ -146,8 +146,11 @@
 <script>
 import Inventory from "./Inventory";
 import InventoryDraggable from "./InventoryDraggable";
-import InventoryDraggableItem from "./InventoryDraggableItem";
+import InventoryDraggableFrame from "./InventoryDraggableFrame";
+import InventoryDraggableArmsWeapon from "./InventoryDraggableArmsWeapon";
 import Person from "./Person";
+import PersonDraggable from "./PersonDraggable";
+import PersonItem from "./PersonItem";
 
 import generateItems from "../helpers/generateItems";
 
@@ -157,8 +160,12 @@ export default {
   components: {
     Inventory,
     InventoryDraggable,
-    InventoryDraggableItem,
-    Person
+    InventoryDraggableFrame,
+    InventoryDraggableArmsWeapon,
+
+    Person,
+    PersonDraggable,
+    PersonItem
   },
 
   data() {
@@ -193,7 +200,7 @@ export default {
         frame: {
           height: 85
         },
-        items: generateItems([{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }], 40)
+        items: generateItems([{ id: 5 }, { id: 6 }, { id: 7 }, { id: 8 }], 40)
       },
       wallet: {
         name: "wallet",
@@ -206,10 +213,63 @@ export default {
       weapon: {
         name: "weapon",
         cols: 1,
-        frame: {
-          height: 85
-        },
-        items: [undefined]
+        items: []
+      },
+
+      person: {
+        name: "person",
+        items: [
+          {
+            name: "person-braslet",
+            img: "braslet.png",
+            items: []
+          },
+          {
+            name: "person-hat",
+            img: "hat.png",
+            items: []
+          },
+          {
+            name: "person-ochki",
+            img: "ochki.png",
+            items: []
+          },
+          {
+            name: "person-cepi",
+            img: "cepi.png",
+            items: []
+          },
+          {
+            name: "person-jacket",
+            img: "jacket.png",
+            items: []
+          },
+          {
+            name: "person-futbolka",
+            img: "futbolka.png",
+            items: []
+          },
+          {
+            name: "person-shorts",
+            img: "shorts.png",
+            items: []
+          },
+          {
+            name: "person-foot",
+            img: "foot.png",
+            items: []
+          },
+          {
+            name: "person-time",
+            img: "time.png",
+            items: []
+          },
+          {
+            name: "person-bronee",
+            img: "bronee.png",
+            items: []
+          }
+        ]
       }
     };
   },
@@ -220,9 +280,12 @@ export default {
       return this.environment.frame.height * 7;
     },
 
-    inventaryHeight() {
-      // height * rows + border
-      return this.environmentHeight;
+    armsWeaponHeight() {
+      return this.walletHeight;
+    },
+
+    personHeight() {
+      return 600;
     },
 
     fastAccessHeight() {
@@ -239,8 +302,9 @@ export default {
       return this.walletHeight;
     },
 
-    personHeight() {
-      return 600;
+    inventaryHeight() {
+      // height * rows + border
+      return this.environmentHeight;
     }
   },
 
@@ -249,23 +313,10 @@ export default {
       fromOptions = options;
     },
 
-    // Инвентарь
-    dropInventary(toOptions) {
-      if (!fromOptions || !toOptions) return;
-
-      const { lists: fromLists, index: fromIndex } = fromOptions;
-      const { lists: toLists, index: toIndex } = toOptions;
-
-      const fromList = fromLists.splice(fromIndex, 1, undefined)[0];
-
-      toLists.splice(toIndex, 1, fromList);
-
-      fromOptions = null;
-    },
-
     // Быстрый доступ
     dropFastAccess(toOptions) {
-      if (!fromOptions || !toOptions) return;
+      if (!fromOptions || !toOptions || fromOptions.groupName !== "inventory")
+        return;
 
       const { lists: fromLists, index: fromIndex } = fromOptions;
       const { lists: toLists, index: toIndex } = toOptions;
@@ -280,14 +331,29 @@ export default {
       fromOptions = null;
     },
 
-    // Бумажник
+    // Инвентарь
     drop(toOptions) {
       if (!fromOptions || !toOptions) return;
 
-      const { lists: fromLists, index: fromIndex } = fromOptions;
+      const {
+        groupName: fromGroupName,
+        lists: fromLists,
+        index: fromIndex
+      } = fromOptions;
       const { lists: toLists, index: toIndex } = toOptions;
 
-      toLists.splice(toIndex, 1, fromLists[fromIndex]);
+      // if the frame is empty
+      if (!toLists[toIndex]) {
+        let fromList;
+
+        if (fromGroupName === "person" || fromGroupName === "weapon") {
+          fromList = fromLists.splice(fromIndex, 1)[0];
+        } else {
+          fromList = fromLists.splice(fromIndex, 1, undefined)[0];
+        }
+
+        toLists.splice(toIndex, 1, fromList);
+      }
 
       fromOptions = null;
     }
@@ -326,6 +392,64 @@ export default {
     height: 100%;
     background-color: rgba(#080808, 0.86);
     border-radius: 12px;
+  }
+}
+</style>
+
+<style lang="scss">
+.person {
+  &-draggable-item {
+    position: absolute;
+  }
+
+  &-hat {
+    left: 41%;
+    top: -45px;
+  }
+
+  &-ochki {
+    left: 41%;
+    top: 17px;
+  }
+
+  &-cepi {
+    left: 41%;
+    top: 85px;
+  }
+
+  &-braslet {
+    left: 18%;
+    top: 273px;
+  }
+
+  &-jacket {
+    left: 31%;
+    top: 145px;
+  }
+
+  &-futbolka {
+    left: 51%;
+    top: 145px;
+  }
+
+  &-shorts {
+    left: 41%;
+    top: 355px;
+  }
+
+  &-time {
+    left: 68%;
+    top: 285px;
+  }
+
+  &-bronee {
+    left: 40%;
+    top: 225px;
+  }
+
+  &-foot {
+    left: 41%;
+    top: 500px;
   }
 }
 </style>
