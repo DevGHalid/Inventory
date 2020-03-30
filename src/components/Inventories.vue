@@ -1,5 +1,10 @@
 <template>
   <div class="inventories">
+    <VueContext class="drop-menu-items" ref="menu">
+      <li class="drop-menu-item" v-for="menuItem in menuItems" :key="menuItem.title">
+        <a href="#" @click.prevent="menuItem.handler">{{ menuItem.title }}</a>
+      </li>
+    </VueContext>
     <div class="inventory">
       <div class="inventory-up">
         <Inventory>
@@ -84,7 +89,14 @@
                 :draggable="false"
                 @dragstart="dragStart"
                 @drop="dropFastAccess"
-              >{{ item && 'item ' + item.id }}</InventoryDraggableFrame>
+              >
+                <template #default="{ props }">
+                  <span
+                    v-if="item"
+                    @contextmenu.prevent="fastAccessContextMenu(props.options, $event)"
+                  >{{ item && 'item ' + item.id }}</span>
+                </template>
+              </InventoryDraggableFrame>
             </InventoryDraggable>
           </template>
         </Inventory>
@@ -101,17 +113,22 @@
               :cols="inventory.cols"
               :height="inventaryHeight"
             >
-              <template #default>
-                <InventoryDraggableFrame
-                  :height="inventory.frame.height"
-                  v-for="(item, index) in inventory.items"
-                  :index="index"
-                  :key="index"
-                  :draggable="!!item"
-                  @dragstart="dragStart"
-                  @drop="drop"
-                >{{ item && 'item ' + item.id }}</InventoryDraggableFrame>
-              </template>
+              <InventoryDraggableFrame
+                :height="inventory.frame.height"
+                v-for="(item, index) in inventory.items"
+                :index="index"
+                :key="index"
+                :draggable="!!item"
+                @dragstart="dragStart"
+                @drop="drop"
+              >
+                <template #default="{ props }">
+                  <span
+                    v-if="item"
+                    @contextmenu.prevent="inventoryContextMenu(props.options, $event)"
+                  >{{ 'item ' + item.id }}</span>
+                </template>
+              </InventoryDraggableFrame>
             </InventoryDraggable>
           </template>
         </Inventory>
@@ -144,6 +161,8 @@
 </template>
 
 <script>
+import VueContext from "vue-context";
+
 import Inventory from "./Inventory";
 import InventoryDraggable from "./InventoryDraggable";
 import InventoryDraggableFrame from "./InventoryDraggableFrame";
@@ -165,11 +184,15 @@ export default {
 
     Person,
     PersonDraggable,
-    PersonItem
+    PersonItem,
+
+    VueContext
   },
 
   data() {
     return {
+      menuItems: [],
+
       environment: {
         name: "environment",
         cols: 5,
@@ -325,7 +348,7 @@ export default {
 
       // does not exist the item
       if (toLists.every(list => list !== fromList)) {
-        toLists.splice(toIndex, 1, fromLists[fromIndex]);
+        toLists.splice(toIndex, 1, fromList);
       }
 
       fromOptions = null;
@@ -356,12 +379,76 @@ export default {
       }
 
       fromOptions = null;
+    },
+
+    pushToQuickAccess(options) {
+      for (let i = 0; i < this.fastAccess.items.length; i++) {
+        const item = this.fastAccess.items[i];
+
+        if (item === undefined) {
+          const fromList = options.lists[options.index];
+          // does not exist the item
+          if (this.fastAccess.items.every(list => list !== fromList)) {
+            this.fastAccess.items.splice(i, 1, fromList);
+          }
+          break;
+        }
+      }
+    },
+
+    // context menu
+
+    inventoryContextMenu(options, e) {
+      this.menuItems = [
+        {
+          title: "быстрый доступ",
+          handler: this.pushToQuickAccess.bind(this, options)
+        }
+      ];
+
+      this.$refs.menu.open(e);
+    },
+
+    removeItemFromOptions(options) {
+      return options.lists.splice(options.index, 1, undefined);
+    },
+
+    fastAccessContextMenu(options, e) {
+      this.menuItems = [
+        {
+          title: "Убрать",
+          handler: this.removeItemFromOptions.bind(this, options)
+        }
+      ];
+
+      this.$refs.menu.open(e);
     }
   }
 };
 </script>
 
 <style lang="scss" scoped>
+@import "~vue-context/dist/css/vue-context.css";
+
+.drop-menu {
+  &-items {
+    padding: 0;
+  }
+
+  &-item {
+    a {
+      background-color: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      border: 0 !important;
+
+      &:hover {
+        color: #fff;
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+    }
+  }
+}
+
 .inventories {
   position: absolute;
   left: 50%;

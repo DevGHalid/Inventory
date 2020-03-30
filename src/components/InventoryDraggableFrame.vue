@@ -1,15 +1,15 @@
 <template>
   <div class="inventory-frame" :style="`height: ${height}px`">
     <Frame>
-      <span
+      <div
         :draggable="draggable"
         :class="{ 'disabled': !draggable }"
         @dragstart="$emit('dragstart', options, $event)"
         @drop="$emit('drop', options, $event)"
         @dragover.prevent
       >
-        <slot></slot>
-      </span>
+        <slot :props="{ options }"></slot>
+      </div>
     </Frame>
   </div>
 </template>
