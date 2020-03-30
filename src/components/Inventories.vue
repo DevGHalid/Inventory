@@ -1,160 +1,163 @@
 <template>
   <div class="inventories">
-    <VueContext class="drop-menu-items" ref="menu">
-      <li class="drop-menu-item" v-for="menuItem in menuItems" :key="menuItem.title">
-        <a href="#" @click.prevent="menuItem.handler">{{ menuItem.title }}</a>
-      </li>
-    </VueContext>
-    <div class="inventory">
-      <div class="inventory-up">
-        <Inventory>
-          <template #title>Окружение</template>
-          <template #body>
-            <InventoryDraggable
-              :groupName="environment.name"
-              :lists="environment.items"
-              :cols="environment.cols"
-              :height="environmentHeight"
-            >
-              <InventoryDraggableFrame
-                :height="environment.frame.height"
-                v-for="(item, index) in environment.items"
-                :index="index"
-                :key="index"
-                :draggable="!!item"
-                @dragstart="dragStart"
-                @drop="drop"
-              >{{ item && 'item ' + item.id }}</InventoryDraggableFrame>
-            </InventoryDraggable>
-          </template>
-        </Inventory>
-      </div>
-      <div class="inventory-down">
-        <Inventory>
-          <template #title>Оружие в руках</template>
-          <template #body>
-            <InventoryDraggable
-              :groupName="armsWeapon.name"
-              :lists="armsWeapon.items"
-              :cols="armsWeapon.cols"
-              :height="armsWeaponHeight"
-            >
-              <InventoryDraggableArmsWeapon :index="0" @dragstart="dragStart" @drop="drop">
-                <img src="../assets/weapon.png" v-if="armsWeapon.items[0]" />
-                <span v-else>Пусто</span>
-              </InventoryDraggableArmsWeapon>
-            </InventoryDraggable>
-          </template>
-        </Inventory>
-      </div>
-    </div>
-    <div class="inventory">
-      <div class="inventory-up">
-        <Person :height="personHeight">
-          <template #body>
-            <PersonDraggable
-              v-for="(item, index) in person.items"
-              :key="index"
-              :lists="item.items"
-              :groupName="person.name"
-              :className="`person-draggable-item ${item.name}`"
-            >
-              <PersonItem
-                :draggable="!!item.items[0]"
-                :index="0"
-                @dragstart="dragStart"
-                @drop="drop"
+    <div class="inventories-container">
+      <div class="inventory">
+        <div class="inventory-up">
+          <Inventory>
+            <template #title>Окружение</template>
+            <template #body>
+              <InventoryDraggable
+                :groupName="environment.name"
+                :lists="environment.items"
+                :cols="environment.cols"
+                :height="environmentHeight"
               >
-                <img :src="require(`@/assets/${item.img}`)" />
-              </PersonItem>
-            </PersonDraggable>
-          </template>
-        </Person>
-      </div>
-      <div class="inventory-down">
-        <Inventory>
-          <template #title>Быстрый доступ</template>
-          <template #body>
-            <InventoryDraggable
-              :groupName="fastAccess.name"
-              :lists="fastAccess.items"
-              :cols="fastAccess.cols"
-              :height="fastAccessHeight"
-            >
-              <InventoryDraggableFrame
-                :height="fastAccess.frame.height"
-                v-for="(item, index) in fastAccess.items"
-                :index="index"
-                :key="index"
-                :draggable="false"
-                @dragstart="dragStart"
-                @drop="dropFastAccess"
+                <InventoryDraggableFrame
+                  :height="environment.frame.height"
+                  v-for="(item, index) in environment.items"
+                  :index="index"
+                  :key="index"
+                  :draggable="!!item"
+                  @dragstart="dragStart"
+                  @drop="drop"
+                >{{ item && 'item ' + item.id }}</InventoryDraggableFrame>
+              </InventoryDraggable>
+            </template>
+          </Inventory>
+        </div>
+        <div class="inventory-down">
+          <Inventory>
+            <template #title>Оружие в руках</template>
+            <template #body>
+              <InventoryDraggable
+                :groupName="armsWeapon.name"
+                :lists="armsWeapon.items"
+                :cols="armsWeapon.cols"
+                :height="armsWeaponHeight"
               >
-                <template #default="{ props }">
-                  <span
-                    v-if="item"
-                    @contextmenu.prevent="fastAccessContextMenu(props.options, $event)"
-                  >{{ item && 'item ' + item.id }}</span>
-                </template>
-              </InventoryDraggableFrame>
-            </InventoryDraggable>
-          </template>
-        </Inventory>
+                <InventoryDraggableArmsWeapon :index="0" @dragstart="dragStart" @drop="drop">
+                  <img src="../assets/weapon.png" v-if="armsWeapon.items[0]" />
+                  <span v-else>Пусто</span>
+                </InventoryDraggableArmsWeapon>
+              </InventoryDraggable>
+            </template>
+          </Inventory>
+        </div>
       </div>
-    </div>
-    <div class="inventory">
-      <div class="inventory-up">
-        <Inventory>
-          <template #title>Инвентарь</template>
-          <template #body>
-            <InventoryDraggable
-              :groupName="inventory.name"
-              :lists="inventory.items"
-              :cols="inventory.cols"
-              :height="inventaryHeight"
-            >
-              <InventoryDraggableFrame
-                :height="inventory.frame.height"
-                v-for="(item, index) in inventory.items"
-                :index="index"
+      <div class="inventory">
+        <div class="inventory-up">
+          <Person :height="personHeight">
+            <template #body>
+              <PersonDraggable
+                v-for="(item, index) in person.items"
                 :key="index"
-                :draggable="!!item"
-                @dragstart="dragStart"
-                @drop="drop"
+                :lists="item.items"
+                :groupName="person.name"
+                :className="`person-draggable-item ${item.name}`"
               >
-                <template #default="{ props }">
-                  <span
-                    v-if="item"
-                    @contextmenu.prevent="inventoryContextMenu(props.options, $event)"
-                  >{{ 'item ' + item.id }}</span>
-                </template>
-              </InventoryDraggableFrame>
-            </InventoryDraggable>
-          </template>
-        </Inventory>
+                <PersonItem
+                  :draggable="!!item.items[0]"
+                  :index="0"
+                  @dragstart="dragStart"
+                  @drop="drop"
+                >
+                  <img :src="require(`@/assets/${item.img}`)" />
+                </PersonItem>
+              </PersonDraggable>
+            </template>
+          </Person>
+        </div>
+        <div class="inventory-down">
+          <Inventory>
+            <template #title>Быстрый доступ</template>
+            <template #body>
+              <InventoryDraggable
+                :groupName="fastAccess.name"
+                :lists="fastAccess.items"
+                :cols="fastAccess.cols"
+                :height="fastAccessHeight"
+              >
+                <InventoryDraggableFrame
+                  :height="fastAccess.frame.height"
+                  v-for="(item, index) in fastAccess.items"
+                  :index="index"
+                  :key="index"
+                  :draggable="false"
+                  @dragstart="dragStart"
+                  @drop="dropFastAccess"
+                >
+                  <template #default="{ props }">
+                    <span
+                      v-if="item"
+                      @contextmenu.prevent="fastAccessContextMenu(props.options, $event)"
+                    >{{ item && 'item ' + item.id }}</span>
+                  </template>
+                </InventoryDraggableFrame>
+              </InventoryDraggable>
+            </template>
+          </Inventory>
+        </div>
       </div>
-      <div class="inventory-down">
-        <Inventory>
-          <template #title>Бумажник</template>
-          <template #body>
-            <InventoryDraggable
-              :groupName="wallet.name"
-              :lists="wallet.items"
-              :cols="wallet.cols"
-              :height="walletHeight"
-            >
-              <InventoryDraggableFrame
-                :height="wallet.frame.height"
-                v-for="(item, index) in wallet.items"
-                :index="index"
-                :key="index"
-                :draggable="!!item"
-                @dragstart="dragStart"
-                @drop="drop"
-              >{{ item && 'item ' + item.id }}</InventoryDraggableFrame>
-            </InventoryDraggable>
-          </template>
-        </Inventory>
+      <div class="inventory">
+        <div class="inventory-up">
+          <Inventory>
+            <template #title>Инвентарь</template>
+            <template #body>
+              <InventoryDraggable
+                :groupName="inventory.name"
+                :lists="inventory.items"
+                :cols="inventory.cols"
+                :height="inventaryHeight"
+              >
+                <InventoryDraggableFrame
+                  :height="inventory.frame.height"
+                  v-for="(item, index) in inventory.items"
+                  :index="index"
+                  :key="index"
+                  :draggable="!!item"
+                  @dragstart="dragStart"
+                  @drop="drop"
+                >
+                  <template #default="{ props }">
+                    <span
+                      v-if="item"
+                      @contextmenu.prevent="inventoryContextMenu(props.options, $event)"
+                    >{{ 'item ' + item.id }}</span>
+                  </template>
+                </InventoryDraggableFrame>
+              </InventoryDraggable>
+            </template>
+          </Inventory>
+        </div>
+        <div class="inventory-down">
+          <Inventory>
+            <template #title>Бумажник</template>
+            <template #body>
+              <InventoryDraggable
+                :groupName="wallet.name"
+                :lists="wallet.items"
+                :cols="wallet.cols"
+                :height="walletHeight"
+              >
+                <InventoryDraggableFrame
+                  :height="wallet.frame.height"
+                  v-for="(item, index) in wallet.items"
+                  :index="index"
+                  :key="index"
+                  :draggable="!!item"
+                  @dragstart="dragStart"
+                  @drop="drop"
+                >{{ item && 'item ' + item.id }}</InventoryDraggableFrame>
+              </InventoryDraggable>
+            </template>
+          </Inventory>
+        </div>
+
+        <VueContext class="drop-menu-items" ref="menu">
+          <li class="drop-menu-item" v-for="menuItem in menuItems" :key="menuItem.title">
+            <a href="#" @click.prevent="menuItem.handler">{{ menuItem.title }}</a>
+          </li>
+        </VueContext>
       </div>
     </div>
   </div>
@@ -437,9 +440,8 @@ export default {
 
   &-item {
     a {
-      background-color: rgba(0, 0, 0, 0.7);
+      background-color: rgba(0, 0, 0, 0.8);
       color: #fff;
-      border: 0 !important;
 
       &:hover {
         color: #fff;
@@ -450,12 +452,17 @@ export default {
 }
 
 .inventories {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+
+  &-container {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
 }
 
 .inventory {
